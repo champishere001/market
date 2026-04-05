@@ -3,88 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GARG AI | Scenario Intelligence</title>
+    <title>GARG AI | Command Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&family=JetBrains+Mono&display=swap');
-        body { font-family: 'Outfit', sans-serif; background-color: #020617; }
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+        body { font-family: 'Outfit', sans-serif; background-color: #020617; color: #f8fafc; }
         .mono { font-family: 'JetBrains Mono', monospace; }
-        .glass { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
-        #gauge-ptr { transition: all 1s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .glass-panel { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.08); }
+        #pulse-bar { transition: width 1s cubic-bezier(0.22, 1, 0.36, 1); }
+        .data-grid > div { border-right: 1px solid rgba(255,255,255,0.05); }
+        .data-grid > div:last-child { border-right: none; }
     </style>
 </head>
-<body class="text-slate-300 min-h-screen flex items-center justify-center p-6">
+<body class="min-h-screen flex items-center justify-center p-4 sm:p-6">
 
     <div class="w-full max-w-2xl">
-        <div class="flex justify-between items-center mb-8 px-2">
+        
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 px-2 gap-4">
             <div>
-                <h1 class="text-3xl font-black text-white tracking-tighter italic">GARG <span class="text-blue-500">AI</span></h1>
-                <p class="text-[10px] mono text-blue-400/60 uppercase tracking-[0.4em]">Proprietary Market Brain v4.0</p>
+                <h1 class="text-4xl font-black italic tracking-tighter text-white">GARG <span class="text-blue-500 underline decoration-4 underline-offset-4">AI</span></h1>
+                <p id="market-status" class="text-[10px] font-bold mono text-blue-400 mt-2 uppercase tracking-[0.2em] bg-blue-500/10 inline-block px-2 py-0.5 rounded border border-blue-500/20">
+                    CONNECTING UPLINK...
+                </p>
             </div>
-            <div class="text-right">
-                <p id="clock" class="text-xs mono text-slate-500">SYNCING...</p>
-                <div class="flex items-center gap-2 justify-end mt-1">
-                    <div class="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse"></div>
-                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Secure Uplink</span>
+            <div class="text-left sm:text-right">
+                <p id="clock" class="text-sm mono text-slate-400 font-bold">00:00:00</p>
+                <div class="flex items-center gap-2 sm:justify-end mt-1">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span class="text-[9px] uppercase font-black text-slate-500 tracking-widest">System Active</span>
                 </div>
             </div>
         </div>
 
-        <div class="relative">
-            <div id="card-glow" class="absolute -inset-4 bg-blue-600 rounded-[3rem] blur-[80px] opacity-10 transition-all duration-1000"></div>
+        <div class="relative group">
+            <div id="glow" class="absolute -inset-4 sm:-inset-6 bg-blue-600/10 rounded-[3rem] blur-3xl transition-all duration-1000 opacity-70"></div>
             
-            <div class="relative glass rounded-[2.5rem] p-8 md:p-12 shadow-2xl overflow-hidden">
+            <div class="relative glass-panel rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 shadow-2xl">
                 
-                <div class="flex flex-col items-center mb-10">
-                    <div class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4">Trend Pulse</div>
-                    <div class="relative w-full h-3 bg-slate-900/80 rounded-full border border-white/5 overflow-hidden">
-                        <div class="absolute left-1/2 top-0 bottom-0 w-0.5 bg-slate-700 z-10"></div>
-                        <div id="gauge-ptr" class="absolute top-0 bottom-0 left-1/2 w-0 bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.5)]"></div>
+                <div class="mb-10 sm:mb-12">
+                    <div class="flex justify-between text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 px-1">
+                        <span>Put Zone</span>
+                        <span id="strength-txt" class="text-blue-400">System Calculating</span>
+                        <span>Call Zone</span>
                     </div>
-                    <div class="flex justify-between w-full mt-2 px-1 text-[9px] mono font-bold text-slate-600">
-                        <span>BEARISH (PUT)</span>
-                        <span id="strength-val" class="text-blue-400">0% STRENGTH</span>
-                        <span>BULLISH (CALL)</span>
+                    <div class="h-2 w-full bg-slate-900/80 rounded-full overflow-hidden flex border border-white/5">
+                        <div id="pulse-bar" class="h-full bg-blue-600 w-0"></div>
                     </div>
                 </div>
 
-                <div class="grid md:grid-cols-2 gap-8 items-center border-y border-white/5 py-10">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 sm:mb-10 pb-8 sm:pb-10 border-b border-white/5 gap-6">
                     <div>
-                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">System Signal</span>
-                        <h2 id="signal" class="text-8xl font-black tracking-tighter text-slate-800 transition-colors duration-500">WAIT</h2>
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 block">Algorithm Verdict</span>
+                        <h2 id="verdict" class="text-7xl sm:text-8xl font-black tracking-tighter text-slate-800 transition-colors duration-500 leading-none">WAIT</h2>
                     </div>
-                    <div class="space-y-4">
-                        <div class="bg-white/5 rounded-2xl p-4 border border-white/5">
-                            <p class="text-[9px] font-bold text-slate-500 uppercase mb-1">Recommended Strike</p>
-                            <p id="strike" class="text-2xl font-bold text-white tracking-tight">ATM --</p>
-                        </div>
-                        <div class="bg-white/5 rounded-2xl p-4 border border-white/5">
-                            <p class="text-[9px] font-bold text-slate-500 uppercase mb-1">Confidence Rating</p>
-                            <p id="conf-val" class="text-xl font-bold text-blue-400 italic">--%</p>
+                    <div class="w-full sm:w-auto text-left sm:text-right">
+                        <div class="bg-white/5 p-4 rounded-2xl border border-white/5 w-full sm:inline-block">
+                            <p class="text-[9px] font-bold text-slate-500 uppercase mb-1">Target Strike Option</p>
+                            <p id="strike" class="text-2xl font-black text-white italic">ATM --</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-3 gap-2 mt-8">
-                    <div class="text-center p-3">
-                        <p class="text-[8px] font-bold text-slate-500 uppercase mb-1">Nifty 50</p>
-                        <p id="nifty-val" class="text-sm font-black text-slate-200 tracking-tight">--</p>
-                    </div>
-                    <div class="text-center p-3 border-x border-white/5">
-                        <p class="text-[8px] font-bold text-slate-500 uppercase mb-1">India VIX</p>
-                        <p id="vix-val" class="text-sm font-black text-slate-200 tracking-tight">--</p>
-                    </div>
-                    <div class="text-center p-3">
-                        <p class="text-[8px] font-bold text-slate-500 uppercase mb-1">Bank Nifty</p>
-                        <p id="bank-val" class="text-sm font-black text-slate-200 tracking-tight">--</p>
+                <div class="mb-8 sm:mb-10">
+                    <div class="bg-[#0b0f1a] border border-white/5 p-5 sm:p-6 rounded-2xl sm:rounded-3xl relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-blue-500/50" id="intel-accent"></div>
+                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 sm:mb-3">Macro & Scenario Analysis</p>
+                        <p id="scenario" class="text-sm sm:text-base font-semibold text-slate-200 leading-relaxed italic mb-3">
+                            Awaiting initial data payload...
+                        </p>
+                        <div class="bg-black/30 rounded-xl p-3 border border-white/5">
+                            <p id="news-feed" class="text-[10px] mono text-slate-400 leading-tight"></p>
+                        </div>
                     </div>
                 </div>
 
-                <div class="mt-8 pt-6 border-t border-white/5">
-                    <p id="scenario-desc" class="text-[11px] text-slate-400 text-center italic leading-relaxed">
-                        Initializing Scenarios from Shimla Base...
-                    </p>
+                <div class="grid grid-cols-3 text-center bg-black/20 rounded-2xl border border-white/5 p-2 data-grid">
+                    <div class="p-3">
+                        <p class="text-[8px] sm:text-[9px] font-bold text-slate-500 uppercase mb-1">Nifty 50</p>
+                        <p id="nifty" class="text-xs sm:text-sm font-black text-white mono">--</p>
+                    </div>
+                    <div class="p-3">
+                        <p class="text-[8px] sm:text-[9px] font-bold text-slate-500 uppercase mb-1">India VIX</p>
+                        <p id="vix" class="text-xs sm:text-sm font-black text-white mono">--</p>
+                    </div>
+                    <div class="p-3">
+                        <p class="text-[8px] sm:text-[9px] font-bold text-slate-500 uppercase mb-1">Bank Nifty</p>
+                        <p id="bank" class="text-xs sm:text-sm font-black text-white mono">--</p>
+                    </div>
                 </div>
+                
             </div>
         </div>
     </div>
@@ -93,41 +103,63 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
-        const firebaseConfig = {
-            databaseURL: "https://garg-enterprise-default-rtdb.asia-southeast1.firebasedatabase.app",
+        // Your Firebase Configuration
+        const firebaseConfig = { 
+            databaseURL: "https://garg-enterprise-default-rtdb.asia-southeast1.firebasedatabase.app" 
         };
-
+        
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const signalRef = ref(db, 'live_signal');
 
+        // DOM Elements
+        const elVerdict = document.getElementById('verdict');
+        const elStrike = document.getElementById('strike');
+        const elScenario = document.getElementById('scenario');
+        const elNews = document.getElementById('news-feed');
+        const elClock = document.getElementById('clock');
+        const elStatus = document.getElementById('market-status');
+        const elGaugeFill = document.getElementById('pulse-bar');
+        const elStrengthTxt = document.getElementById('strength-txt');
+        const elGlow = document.getElementById('glow');
+        const elIntelAccent = document.getElementById('intel-accent');
+        const elNifty = document.getElementById('nifty');
+        const elVix = document.getElementById('vix');
+        const elBank = document.getElementById('bank');
+
+        // Listen for Real-time Updates
         onValue(signalRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                // Verdict Logic
-                document.getElementById('signal').innerText = data.verdict;
-                document.getElementById('signal').style.color = data.color;
-                document.getElementById('strike').innerText = "ATM " + data.strike;
-                document.getElementById('conf-val').innerText = data.confidence;
-                document.getElementById('conf-val').style.color = data.color;
-                document.getElementById('scenario-desc').innerText = data.scenario;
-                document.getElementById('clock').innerText = data.timestamp;
-
-                // Index Stats
-                document.getElementById('nifty-val').innerText = data.nifty.toLocaleString();
-                document.getElementById('vix-val').innerText = data.vix;
-                document.getElementById('bank-val').innerText = data.banknifty.toLocaleString();
-
-                // Trend Pulse Gauge Logic
-                const score = data.market_strength || 0;
-                const ptr = document.getElementById('gauge-ptr');
-                ptr.style.width = Math.abs(score) + "%";
-                ptr.style.backgroundColor = data.color;
-                ptr.style.left = score >= 0 ? "50%" : (50 - Math.abs(score)) + "%";
+                // Text Updates
+                elVerdict.innerText = data.verdict;
+                elStrike.innerText = "Strike " + data.strike;
+                elScenario.innerText = data.scenario;
                 
-                document.getElementById('strength-val').innerText = Math.abs(score) + "% STRENGTH";
-                document.getElementById('strength-val').style.color = data.color;
-                document.getElementById('card-glow').style.backgroundColor = data.color;
+                // Format news feed with clean line breaks
+                elNews.innerHTML = data.news_feed.split(' | ').join('<br><span class="text-blue-500/50">›</span> ');
+                
+                elClock.innerText = data.timestamp;
+                elStatus.innerText = "MARKET: " + data.status;
+
+                // Color & Theming Updates
+                const color = data.color;
+                const confScore = Math.abs(parseInt(data.confidence));
+                
+                elVerdict.style.color = color;
+                elGaugeFill.style.width = confScore + "%";
+                elGaugeFill.style.backgroundColor = color;
+                
+                elStrengthTxt.innerText = data.confidence + " SIGNAL STRENGTH";
+                elStrengthTxt.style.color = color;
+                
+                elGlow.style.backgroundColor = color;
+                elIntelAccent.style.backgroundColor = color;
+
+                // Technical Data Updates
+                elNifty.innerText = Number(data.nifty).toLocaleString('en-IN');
+                elVix.innerText = data.vix;
+                elBank.innerText = Number(data.banknifty).toLocaleString('en-IN');
             }
         });
     </script>
