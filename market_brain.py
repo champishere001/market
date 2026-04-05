@@ -3,135 +3,76 @@ from firebase_admin import credentials, db
 import time
 from nsepython import nse_quote_ltp
 
-# ---------------------------------------------------------
 # 1. FIREBASE INITIALIZATION
-# ---------------------------------------------------------
 if not firebase_admin._apps:
     try:
+        # Ensure 'serviceAccountKey.json' is in your VS Code 'market' folder
         cred = credentials.Certificate("serviceAccountKey.json")
         firebase_admin.initialize_app(cred, {
             'databaseURL': 'https://garg-enterprise-default-rtdb.asia-southeast1.firebasedatabase.app'
         })
     except Exception as e:
-        print(f"CRITICAL ERROR: Please ensure serviceAccountKey.json is present. {e}")
+        print(f"CRITICAL ERROR: {e}")
         exit()
 
-# ---------------------------------------------------------
-# 2. DEEP MARKET ANALYSIS ENGINE
-# ---------------------------------------------------------
 def get_deep_market_intel():
-    """
-    Analyzes Technicals (Nifty/VIX) + Macro Affairs (Commodities/Negotiations).
-    """
+    """Analyzes Technicals + Macro Negotiations."""
     try:
-        # Fetch Live Exchange Data
         nifty = nse_quote_ltp("NIFTY 50")
         vix = nse_quote_ltp("INDIA VIX")
         bank_nifty = nse_quote_ltp("NIFTY BANK")
         
         status = "LIVE"
-        
-        # HOLIDAY FALLBACK: If NSE is closed (Returns 0 or None)
-        # Using the last working session (Thursday, April 2 Close)
+        # HOLIDAY FALLBACK: Sunday, April 5 (using Thursday Close)
         if not nifty or nifty == 0:
             nifty, vix, bank_nifty = 22480.15, 14.8, 48210.00
             status = "PRE-OPEN (THU CLOSE)"
 
-        # --- SCORING ALGORITHM ---
         score = 0
         factors = []
 
-        # A. Technical Action
+        # Technical Score
         if nifty > 22450: 
             score += 25
-            factors.append("Price Action: Holding Bullish Structure")
-        else:
-            score -= 20
-            factors.append("Price Action: Slipping Support")
+            factors.append("Price Action: Bullish Hold")
         
-        # B. Volatility (India VIX)
-        if vix < 15.5: 
-            score += 20
-            factors.append("VIX: Low Volatility (Favorable for Calls)")
-        else:
-            score -= 25
-            factors.append("VIX: High Fear Index (Options Expensive)")
+        # Macro/Commodity Negotiations (Current Affairs)
+        # Weekend trade talks and energy stability
+        score += 20 
+        factors.append("Macro: Stable Energy Negotiations")
 
-        # C. Macro & Commodity Impact
-        # Current Affairs: Stable energy prices and positive US trade talks over the weekend
-        global_cue_score = +15 
-        score += global_cue_score
-        
-        if global_cue_score > 0:
-            factors.append("Macro: Positive Energy/Trade Negotiations")
-        else:
-            factors.append("Macro: Geopolitical Headwinds")
-
-        # --- VERDICT MAPPING ---
         if score >= 40:
-            verdict, color = "CALL", "#10b981" # Emerald Green
-            scenario = "BULLISH: Macro factors and stable VIX supporting a Gap-Up."
+            verdict, color = "CALL", "#10b981"
+            scenario = "BULLISH: Global cues support a gap-up opening."
         elif score <= 0:
-            verdict, color = "PUT", "#ef4444" # Rose Red
-            scenario = "BEARISH: Negotiation stalls or high VIX signaling sell-off."
+            verdict, color = "PUT", "#ef4444"
+            scenario = "BEARISH: Negotiation stalls indicate pressure."
         else:
-            verdict, color = "WAIT", "#94a3b8" # Slate Gray
-            scenario = "NEUTRAL: Market consolidating. Wait for clear direction."
-
-        # Calculate nearest At-The-Money (ATM) Strike
-        atm_strike = round(nifty / 50) * 50
+            verdict, color = "WAIT", "#94a3b8"
+            scenario = "NEUTRAL: Market awaiting Monday bell."
 
         return {
-            "v": verdict, 
-            "col": color, 
-            "sug": scenario,
-            "nifty": nifty, 
-            "vix": vix, 
-            "bn": bank_nifty,
-            "strength": score, 
-            "strike": atm_strike,
-            "news": " | ".join(factors), 
-            "status": status
+            "v": verdict, "col": color, "sug": scenario,
+            "nifty": nifty, "vix": vix, "bn": bank_nifty,
+            "strength": score, "strike": round(nifty / 50) * 50,
+            "news": " | ".join(factors), "status": status
         }
-        
-    except Exception as e:
-        print(f"Data Fetch Error: {e}")
-        return None
+    except: return None
 
-# ---------------------------------------------------------
-# 3. MAIN EXECUTION LOOP
-# ---------------------------------------------------------
 def run_brain():
-    print("==================================================")
-    print(f"GARG AI PRO: Initiated for {time.strftime('%Y-%m-%d')}")
-    print("Tracking: Technicals + Macro Sentiment")
-    print("==================================================")
-    
+    print(f"GARG AI PRO: Monitoring Active...")
     while True:
         data = get_deep_market_intel()
-        
         if data:
-            current_time = time.strftime("%H:%M:%S")
-            
-            # Sync to Firebase Realtime Database
             db.reference('/live_signal').set({
-                "verdict": data['v'],
-                "strike": data['strike'],
-                "nifty": data['nifty'],
-                "vix": data['vix'],
-                "banknifty": data['bn'],
-                "confidence": f"{data['strength']}%",
-                "color": data['col'],
-                "scenario": data['sug'],
-                "news_feed": data['news'],
-                "timestamp": current_time,
+                "verdict": data['v'], "strike": data['strike'],
+                "nifty": data['nifty'], "vix": data['vix'],
+                "banknifty": data['bn'], "confidence": f"{data['strength']}%",
+                "color": data['col'], "scenario": data['sug'],
+                "news_feed": data['news'], "timestamp": time.strftime("%H:%M:%S"),
                 "status": data['status']
             })
-            
-            # Terminal Output
-            print(f"[{current_time} - {data['status']}] {data['v']} | Nifty: {data['nifty']} | Strength: {data['strength']}%")
-            
-        # Run every 20 seconds
+            print(f"[{data['status']}] {data['v']} Syncing to Firebase...")
         time.sleep(20)
 
 if __name__ == "__main__":
